@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.38"
 dirs = "1.0.5"
+yaml-rust = "0.4"
 
 [dev-dependencies]
 assert_cmd = "0.10"
