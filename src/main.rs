@@ -133,6 +133,9 @@ fn command_view(args: clap::ArgMatches) -> Result<()> {
 
     // Print out every bookmark with corresponding context.
     for bookmark in config.bookmarks.iter() {
+        // TODO: \\0icon\\x1f$hostname
+        //       This should speed up rofi tool ontop of this.
+        //       Should be an option though.
         println!(
             "{}\t{}\t{}",
             bookmark.0,
