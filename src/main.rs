@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
 use clap::{App, Arg, SubCommand};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use shellexpand;
 use std;
 use std::collections::BTreeMap;
+use std::str;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Config {
@@ -121,6 +123,8 @@ fn run(args: clap::ArgMatches) -> Result<()> {
     return Ok(());
 }
 
+const REGEX_HOSTNAME: &str = r"^([^:]*://)([^/]*)/?.*?$";
+
 /*
  * Command to view bookmarks.
  */
@@ -133,14 +137,19 @@ fn command_view(args: clap::ArgMatches) -> Result<()> {
 
     // Print out every bookmark with corresponding context.
     for bookmark in config.bookmarks.iter() {
+        let re = Regex::new(REGEX_HOSTNAME).unwrap();
+        let caps = re.captures(&bookmark.1.url).unwrap();
+        let hostname = caps.get(2).unwrap().as_str();
+
         // TODO: \\0icon\\x1f$hostname
         //       This should speed up rofi tool ontop of this.
         //       Should be an option though.
         println!(
-            "{}\t{}\t{}",
+            "{}\t{}\t{}\t\0icon\x1f{}",
             bookmark.0,
             bookmark.1.tags.join(","),
-            bookmark.1.url
+            bookmark.1.url,
+            hostname
         );
     }
     return Ok(());
