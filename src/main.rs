@@ -34,7 +34,16 @@ fn main() {
                 .default_value("~/.docket")
                 .help("configuration file to use"),
         )
-        .subcommand(SubCommand::with_name("view").about("view bookmarks"))
+        .subcommand(
+            SubCommand::with_name("view").about("view bookmarks").arg(
+                Arg::with_name("include-icon")
+                    .short("ii")
+                    .long("include-icon")
+                    .required(false)
+                    .takes_value(false)
+                    .help("include icon for bookmarks"),
+            ),
+        )
         .subcommand(SubCommand::with_name("list-tags").about("lists all tags recorded"))
         .subcommand(
             SubCommand::with_name("add")
@@ -115,7 +124,7 @@ fn run(args: clap::ArgMatches) -> Result<()> {
     } else if let Some(_) = args.subcommand_matches("add") {
         command_add(args)?;
     } else if let Some(_) = args.subcommand_matches("edit") {
-        command_edit()?;
+        command_edit(args)?;
     } else if let Some(_) = args.subcommand_matches("delete") {
         command_delete()?;
     }
@@ -137,13 +146,11 @@ fn command_view(args: clap::ArgMatches) -> Result<()> {
 
     // Print out every bookmark with corresponding context.
     for bookmark in config.bookmarks.iter() {
+        // TODO: Should check for '--include-icon'.
         let re = Regex::new(REGEX_HOSTNAME).unwrap();
         let caps = re.captures(&bookmark.1.url).unwrap();
         let hostname = caps.get(2).unwrap().as_str();
 
-        // TODO: \\0icon\\x1f$hostname
-        //       This should speed up rofi tool ontop of this.
-        //       Should be an option though.
         println!(
             "{}\t{}\t{}\t\0icon\x1f{}",
             bookmark.0,
@@ -210,9 +217,34 @@ fn command_add(args: clap::ArgMatches) -> Result<()> {
 /*
  * Command to edit a bookmark.
  */
-fn command_edit() -> Result<()> {
-    // TODO@nw: Edit
-    //          docket edit --name "Some bookmark"
+fn command_edit(args: clap::ArgMatches) -> Result<()> {
+    let args_edit = args.subcommand_matches("edit").unwrap();
+
+    // Load config.
+    let config_path = &std::path::PathBuf::from(
+        shellexpand::tilde(args.value_of("config").unwrap()).into_owned(),
+    );
+    let mut config = load_config(config_path)?;
+
+    // Pull from args the bookmark being edited.
+    let name = args_edit.value_of("name").unwrap();
+
+    // Check if it already exists.
+    if config.bookmarks.contains_key(name) {
+        // TODO: Error here.
+    }
+
+    // TODO: Load in editor.
+    // let editor = std::env::var("EDITOR").unwrap();
+    // let mut file_path = std::env::temp_dir();
+    // file_path.push("editable");
+    // std::fs::File::create(&file_path).expect("Could not create file");
+
+    // std::process::Command::new(editor)
+    //     .arg(&file_path)
+    //     .status()
+    //     .expect("Something went wrong");
+
     return Ok(());
 }
 
