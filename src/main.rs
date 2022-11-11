@@ -147,6 +147,7 @@ fn command_view(args: clap::ArgMatches) -> Result<()> {
     // Print out every bookmark with corresponding context.
     for bookmark in config.bookmarks.iter() {
         // TODO: Should check for '--include-icon'.
+        // TODO: Should really gracefully fail here and log which record could not be parsed.
         let re = Regex::new(REGEX_HOSTNAME).unwrap();
         let caps = re.captures(&bookmark.1.url).unwrap();
         let hostname = caps.get(2).unwrap().as_str();
