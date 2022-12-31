@@ -1,6 +1,12 @@
 [package]
 name = "docket"
 version = "1.0.0"
+description = "Fast and simple bookmark manager for your operating system."
+license = "Apache-2.0"
+license-file = "LICENSE"
+documentation = "https://github.com/Nate-Wilkins/docket"
+homepage = "https://github.com/Nate-Wilkins/docket"
+repository = "https://github.com/Nate-Wilkins/docket"
 authors = ["nate-wilkins <nate-wilkins@code-null.com>"]
 edition = "2021"
 

@@ -19,3 +19,8 @@ function test() {
 function deploy() {
   cargo install --path .
 }
+
+function publish() {
+  cargo login
+  cargo publish
+}
