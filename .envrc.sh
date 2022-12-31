@@ -1,6 +1,9 @@
 function build() {
   cargo build
 
+  # Generate icon.
+  /usr/bin/convert -background none -density 1200 -resize 128x128 ./icon.svg ./target/release/icon_128.png
+
   # Generate completions.
   # Clean.
   rm -rf './target/release/completions/'

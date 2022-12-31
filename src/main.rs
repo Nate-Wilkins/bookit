@@ -38,7 +38,7 @@ fn create_application() -> clap::App<'static, 'static> {
         .bin_name("docket")
         .version("1.0")
         .author("Nathaniel Wilkins <nate-wilkins@code-null.com>")
-        .about("A bookmarks manager!")
+        .about("Fast and simple bookmark manager for your operating system.")
         .arg(
             clap::Arg::with_name("config")
                 .global(true)
