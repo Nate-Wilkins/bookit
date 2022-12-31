@@ -1,5 +1,5 @@
 <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
   <circle cx="100" cy="100" r="90" style="fill:transparent;stroke-width:10;stroke:rgb(0,0,0)" />
-  <text text-anchor="middle" alignment-baseline="middle" x="100" y="100" fontFamily="Fira Code" font-size="42" font-weight="bold">docket</text>
+  <text text-anchor="middle" alignment-baseline="middle" x="100" y="100" fontFamily="Fira Code" font-size="42" font-weight="bold">bookit</text>
   <circle cx="160" cy="160" r="30" style="fill:black;stroke-width:10;stroke:rgb(0,0,0)" />
 </svg>

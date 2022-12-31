@@ -4,9 +4,9 @@ use std::process::Command;
 
 #[test]
 fn test_can_view_bookmarks() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("docket")?;
+    let mut cmd = Command::cargo_bin("bookit")?;
 
-    cmd.arg("--config").arg(".docket");
+    cmd.arg("--config").arg(".bookit");
     cmd.assert().success().stdout(predicate::str::contains(""));
 
     // cmd.arg("foobar").arg("test/file/doesnt/exist");

@@ -1,12 +1,12 @@
 [package]
-name = "docket"
+name = "bookit"
 version = "1.0.0"
 description = "Fast and simple bookmark manager for your operating system."
 license = "Apache-2.0"
 license-file = "LICENSE"
-documentation = "https://github.com/Nate-Wilkins/docket"
-homepage = "https://github.com/Nate-Wilkins/docket"
-repository = "https://github.com/Nate-Wilkins/docket"
+documentation = "https://github.com/Nate-Wilkins/bookit"
+homepage = "https://github.com/Nate-Wilkins/bookit"
+repository = "https://github.com/Nate-Wilkins/bookit"
 authors = ["nate-wilkins <nate-wilkins@code-null.com>"]
 edition = "2021"
 

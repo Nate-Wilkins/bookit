@@ -9,7 +9,7 @@ function build() {
   rm -rf './target/release/completions/'
   mkdir -p './target/release/completions/'
   # Generate zsh.
-  './target/release/docket' completions --type zsh > './target/release/completions/_docket.zsh'
+  './target/release/bookit' completions --type zsh > './target/release/completions/_bookit.zsh'
 }
 
 function test() {

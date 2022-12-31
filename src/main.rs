@@ -34,8 +34,8 @@ fn main() {
  * Create the application command line interface.
  */
 fn create_application() -> clap::App<'static, 'static> {
-    return clap::App::new("docket")
-        .bin_name("docket")
+    return clap::App::new("bookit")
+        .bin_name("bookit")
         .version("1.0")
         .author("Nathaniel Wilkins <nate-wilkins@code-null.com>")
         .about("Fast and simple bookmark manager for your operating system.")
@@ -44,8 +44,8 @@ fn create_application() -> clap::App<'static, 'static> {
                 .global(true)
                 .long("config")
                 .required(false)
-                .env("DOCKET_CONFIG_PATH")
-                .default_value("~/.docket")
+                .env("BOOKIT_CONFIG_PATH")
+                .default_value("~/.bookit")
                 .help("configuration file to use"),
         )
         .subcommand(
@@ -142,7 +142,7 @@ fn create_application() -> clap::App<'static, 'static> {
  */
 fn initialize_logger() {
     // TODO: Support `--verbosity`.
-    let env = env_logger::Env::default().filter("DOCKET_LOG_LEVEL");
+    let env = env_logger::Env::default().filter("BOOKIT_LOG_LEVEL");
 
     return env_logger::Builder::from_env(env)
         .target(env_logger::Target::Stdout)
@@ -320,26 +320,26 @@ fn command_edit(args: clap::ArgMatches) -> Result<()> {
     }
 
     // Load in editor.
-    let docket_edit_command_format = std::env::var("DOCKET_EDIT_COMMAND").unwrap_or(String::from(
-        "'$EDITOR' '$DOCKET_CONFIG_PATH' '+/$DOCKET_BOOKMARK_NAME'",
+    let bookit_edit_command_format = std::env::var("BOOKIT_EDIT_COMMAND").unwrap_or(String::from(
+        "'$EDITOR' '$BOOKIT_CONFIG_PATH' '+/$BOOKIT_BOOKMARK_NAME'",
     ));
-    let docket_edit_command = docket_edit_command_format
+    let bookit_edit_command = bookit_edit_command_format
         .replace(
-            "$DOCKET_CONFIG_PATH",
+            "$BOOKIT_CONFIG_PATH",
             &std::fs::canonicalize(&config_path)
                 .unwrap()
                 .into_os_string()
                 .into_string()
                 .unwrap(),
         )
-        .replace("$DOCKET_BOOKMARK_NAME", name);
-    let docket_edit_command_expanded =
-        String::from(shellexpand::env(&docket_edit_command).unwrap());
-    let docket_edit_command_parts: Vec<String> =
-        shlex::split(&docket_edit_command_expanded).unwrap();
-    log::info!("Running command: {:?}", docket_edit_command_parts);
-    std::process::Command::new(&docket_edit_command_parts[0])
-        .args(&docket_edit_command_parts[1..])
+        .replace("$BOOKIT_BOOKMARK_NAME", name);
+    let bookit_edit_command_expanded =
+        String::from(shellexpand::env(&bookit_edit_command).unwrap());
+    let bookit_edit_command_parts: Vec<String> =
+        shlex::split(&bookit_edit_command_expanded).unwrap();
+    log::info!("Running command: {:?}", bookit_edit_command_parts);
+    std::process::Command::new(&bookit_edit_command_parts[0])
+        .args(&bookit_edit_command_parts[1..])
         .status()
         .expect("Unable to edit file");
 
@@ -376,7 +376,7 @@ fn command_delete(args: clap::ArgMatches) -> Result<()> {
 }
 
 /*
- * Loads a docket configuration file.
+ * Loads a bookit configuration file.
  */
 fn load_config(config_path: &std::path::PathBuf) -> Result<Config> {
     // Load config file.

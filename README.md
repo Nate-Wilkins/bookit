@@ -1,17 +1,39 @@
-# Docket
+# Bookit
 
 > Fast and simple bookmark manager for your operating system.
 
+## TODO:
+
+- Badges
+- Tests
+- crates.io -> bookit
+
+## Install
+
+```
+cargo install bookit
+```
+
 ## Configuration
 
-TO configure docket you can update the following variables.
+### Shell Completions
 
-- `$DOCKET_LOG_LEVEL` (unset): Sets the log level for the program.
+Bookit supports shell completions. To take advantage of them you can generate yours with:
 
-- `$DOCKET_CONFIG_PATH` (`~/.docket`):
-   Configuration file path where docket stores bookmarks.
+```
+bookit completions --type $SHELL               # Where $SHELL is zsh,bash,fish,elvish,powershell
+```
 
-- `$DOCKET_EDIT_COMMAND` (`$EDITOR +/$DOCKET_BOOKMARK_NAME '$DOCKET_CONFIG_PATH'`):
+### Environment Variables
+
+To configure bookit you can update the following variables.
+
+- `$BOOKIT_LOG_LEVEL` (unset): Sets the log level for the program.
+
+- `$BOOKIT_CONFIG_PATH` (`~/.bookit`):
+   Configuration file path where bookit stores bookmarks.
+
+- `$BOOKIT_EDIT_COMMAND` (`$EDITOR +/$BOOKIT_BOOKMARK_NAME '$BOOKIT_CONFIG_PATH'`):
   Process command to run to edit a bookmark.
 
 ## Development
