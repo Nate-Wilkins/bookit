@@ -62,6 +62,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "bookit"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap 2.34.0",
+ "clap_complete",
+ "env_logger",
+ "log",
+ "predicates",
+ "regex",
+ "serde",
+ "serde_yaml",
+ "shellexpand",
+ "shlex",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -140,24 +158,6 @@ dependencies = [
  "libc",
  "redox_users",
  "winapi",
-]
-
-[[package]]
-name = "bookit"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap 2.34.0",
- "clap_complete",
- "env_logger",
- "log",
- "predicates",
- "regex",
- "serde",
- "serde_yaml",
- "shellexpand",
- "shlex",
 ]
 
 [[package]]
