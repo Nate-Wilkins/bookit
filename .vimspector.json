@@ -1,0 +1,22 @@
+{
+  "configurations": {
+    "launch": {
+      "adapter": "CodeLLDB",
+      "variables": {},
+      "filetypes": ["rust"],
+      "configuration": {
+        "request": "launch",
+        "stopOnEntry": false,
+        "program": "${workspaceRoot}/target/debug/bookit"
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "Y",
+          "cpp_catch": "N",
+          "caught": "",
+          "uncaught": "Y"
+        }
+      }
+    }
+  }
+}
