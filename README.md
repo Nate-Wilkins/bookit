@@ -61,3 +61,9 @@ To configure bookit you can update the following variables.
 ## Development
 
 Written in rust. Workflows are defined in `.envrc.sh`.
+
+## Roadmap
+
+- Create `rofi-bookit`.
+- Support windows?
+- Create Windows like spotlight.
