@@ -52,8 +52,11 @@ To configure bookit you can update the following variables.
 - `$BOOKIT_CONFIG_PATH` (`~/.bookit`):
   Configuration file path where bookit stores bookmarks.
 
-- `$BOOKIT_EDIT_COMMAND` (`$EDITOR +/$BOOKIT_BOOKMARK_NAME '$BOOKIT_CONFIG_PATH'`):
-  Process command to run to edit a bookmark.
+- `$BOOKIT_EDIT_COMMAND` (`$EDITOR "$BOOKIT_CONFIG_PATH" "+/$VIM_BOOKIT_BOOKMARK_NAME"`):
+  Process command to run to edit a bookmark. Available variables are:
+  - `$BOOKIT_CONFIG_PATH`: Path to the configuration.
+  - `$BOOKIT_BOOKMARK_NAME`: Name of the bookmark to edit.
+  - `$VIM_BOOKIT_BOOKMARK_NAME`: `$BOOKIT_BOOKMARK_NAME` with proper escaping for searching in vim.
 
 ## Development
 

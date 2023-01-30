@@ -1,6 +1,6 @@
 [package]
 name = "bookit"
-version = "1.0.0"
+version = "2.0.0"
 description = "Fast and simple bookmark manager for your operating system."
 license-file = "LICENSE"
 documentation = "https://github.com/Nate-Wilkins/bookit"

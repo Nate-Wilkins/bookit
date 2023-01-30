@@ -468,7 +468,7 @@ fn test_command_edit_bookmark() -> Result<(), Box<dyn std::error::Error>> {
     // NOTE: In this case we're just going to mock print the bookmark details.
     std::env::set_var(
         "BOOKIT_EDIT_COMMAND",
-        "'printf' 'EDITOR $BOOKIT_CONFIG_PATH +/$BOOKIT_BOOKMARK_NAME\n'",
+        "printf \"EDITOR \\\"$BOOKIT_CONFIG_PATH\\\" \\\"+/$BOOKIT_BOOKMARK_NAME\\\"\\n\"",
     );
 
     // And there's a valid bookit configuration.
@@ -478,12 +478,13 @@ fn test_command_edit_bookmark() -> Result<(), Box<dyn std::error::Error>> {
         String::from(
             r#"---
 bookmarks:
-  GitHub (bookit):
-    url: "https://github.com/Nate-Wilkins/bookit"
+  GitHub (bookit/issues):
+    url: "https://github.com/Nate-Wilkins/bookit/issues"
     tags:
       - internet
       - browser
-      - bookmarks"#,
+      - bookmarks
+      - issues"#,
         )
         .as_bytes(),
     )?;
@@ -494,7 +495,7 @@ bookmarks:
         .arg(input_config_file.path())
         .arg("edit")
         .arg("--name")
-        .arg("GitHub (bookit)")
+        .arg("GitHub (bookit/issues)")
         .assert();
 
     result
@@ -503,10 +504,11 @@ bookmarks:
         .stderr(predicate::str::is_empty())
         // Then the correct output was printed.
         .stdout(predicate::str::contains(format!(
-            "EDITOR {} +/{}
-Edited bookmark 'GitHub (bookit)'.",
+            "EDITOR \"{}\" \"+/{}\"
+Edited bookmark '{}'.",
             input_config_file.path().as_os_str().to_str().unwrap(),
-            "GitHub (bookit)"
+            "GitHub (bookit/issues)",
+            "GitHub (bookit/issues)"
         )));
 
     Ok(())

@@ -389,8 +389,9 @@ fn command_edit(args: clap::ArgMatches) -> Result<()> {
     // Default '$EDITOR' is assumed to be vim compliant.
     let bookit_edit_command_format = std::result::Result::unwrap_or(
         std::env::var("BOOKIT_EDIT_COMMAND"),
-        String::from("'$EDITOR' '$BOOKIT_CONFIG_PATH' '+/$BOOKIT_BOOKMARK_NAME'"),
+        String::from("$EDITOR \"$BOOKIT_CONFIG_PATH\" \"+/$VIM_BOOKIT_BOOKMARK_NAME\""),
     );
+    // Replace fake environment variables.
     let bookit_edit_command = bookit_edit_command_format
         .replace(
             "$BOOKIT_CONFIG_PATH",
@@ -400,16 +401,38 @@ fn command_edit(args: clap::ArgMatches) -> Result<()> {
                 .into_string()
                 .unwrap(),
         )
-        .replace("$BOOKIT_BOOKMARK_NAME", args_edit_name);
-    let bookit_edit_command_expanded =
-        String::from(shellexpand::env(&bookit_edit_command).unwrap());
-    let bookit_edit_command_parts: Vec<String> =
-        shlex::split(&bookit_edit_command_expanded).unwrap();
-    log::info!("Running command: {:?}", bookit_edit_command_parts);
+        .replace("$BOOKIT_BOOKMARK_NAME", args_edit_name)
+        // Find string for vim needs to  escape slashes properly.
+        .replace(
+            "$VIM_BOOKIT_BOOKMARK_NAME",
+            &args_edit_name.replace('/', "\\/"),
+        );
+    log::info!("Command: {}", bookit_edit_command);
+
+    // Replace environment variables.
+    let bookit_edit_command_expanded = shellexpand::env(&bookit_edit_command).unwrap();
+    log::info!("Command Expanded: {}", bookit_edit_command_expanded);
+
+    // Quote environment command.
+    let bookit_edit_command_quoted_split = shlex::split(&bookit_edit_command_expanded).unwrap();
+    let refs_bookit_edit_command_quoted_split: Vec<&str> = bookit_edit_command_quoted_split
+        .iter()
+        .map(AsRef::as_ref)
+        .collect();
+    let bookit_edit_command_quoted = shlex::join(refs_bookit_edit_command_quoted_split);
+    log::info!("Command Quoted: {}", bookit_edit_command_quoted);
+
+    // Quote any arguments correctly.
+    let bookit_edit_command_parts: Vec<String> = shlex::split(&bookit_edit_command_quoted).unwrap();
+    log::info!("Command Expanded Parts: {:?}", bookit_edit_command_parts);
+
+    // Run the editor with our arguments.
     std::process::Command::new(&bookit_edit_command_parts[0])
         .args(&bookit_edit_command_parts[1..])
         .status()
         .expect("Unable to edit file");
+
+    // Success.
     println!("Edited bookmark '{}'.", String::from(args_edit_name),);
 
     Ok(())
