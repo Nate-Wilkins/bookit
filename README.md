@@ -1,10 +1,10 @@
 # Bookit
 
-![Version](https://img.shields.io/crates/v/bookit?style=flat-square)
-![Build](https://img.shields.io/travis/Nate-Wilkins/bookit/main?style=flat-square)
-![Downloads](https://img.shields.io/crates/d/bookit?color=%230E0&style=flat-square)
-![Open Issues](https://img.shields.io/github/issues-raw/Nate-Wilkins/bookit?style=flat-square)
-![License](https://img.shields.io/github/license/Nate-Wilkins/bookit?color=%2308F&style=flat-square)
+[![Version](https://img.shields.io/crates/v/bookit?style=flat-square)](https://crates.io/crates/bookit)
+[![Build](https://img.shields.io/travis/Nate-Wilkins/bookit/main?style=flat-square)](https://app.travis-ci.com/github/Nate-Wilkins/bookit)
+[![Downloads](https://img.shields.io/crates/d/bookit?color=%230E0&style=flat-square)](https://crates.io/crates/bookit)
+[![Open Issues](https://img.shields.io/github/issues-raw/Nate-Wilkins/bookit?style=flat-square)](https://github.com/Nate-Wilkins/bookit/issues)
+[![License](https://img.shields.io/github/license/Nate-Wilkins/bookit?color=%2308F&style=flat-square)](https://github.com/Nate-Wilkins/bookit/blob/main/LICENSE)
 
 > Fast and simple bookmark manager for your operating system.
 
