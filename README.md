@@ -64,6 +64,7 @@ Written in rust. Workflows are defined in `.envrc.sh`.
 
 ## Roadmap
 
+- Support `bookit view | grep` piping?
 - Create `rofi-bookit`.
 - Support windows?
 - Create Windows like spotlight.
