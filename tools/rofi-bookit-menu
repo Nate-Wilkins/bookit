@@ -1,0 +1,230 @@
+#!/usr/bin/env bash
+
+# Program config.
+_rofi () {
+  # \x00image\x1f/absolute/path/img.png\n
+  # rofi -dmenu -i -show-icons -icon-theme "MY_ICON_THEME" -terminal "terminal" -sorting-method "fzf" "$@"
+  rofi -dmenu -columns 1 -i -show-icons -icon-theme "bookit" -terminal "terminal" -sorting-method "fzf" -async-pre-read 0 "$@"
+}
+
+BOOKMARK_ACTION_NEW="Ctrl+n"
+BOOKMARK_ACTION_EDIT="Ctrl+e"
+BOOKMARK_ACTION_DELETE="Ctrl+d"
+
+# User config.
+USER_CONFIG="$HOME/.config/rofi_bookit_menu/config"
+if [[ -f $USER_CONFIG ]]; then
+  source $USER_CONFIG
+else
+  echo "Warning: User config file \'$USER_CONFIG\' not found."
+fi
+
+# Program functions.
+URI_REGEX='[-a-zA-Z0-9@:%._\+~#=]{1,256}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'
+URI_BASEURL_REGEX='^([^:]*://)([^/]*)/?.*?$'
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36"
+
+_join () {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+_map_bookit_entries_to_bookit_uri() {
+  while read -r line; do
+    bookit_uri=$(_parse_bookit_entry_uri "$line")
+    echo -e "$bookit_uri"
+  done <<< $(</dev/stdin)
+}
+
+_get_name() {
+  # Show rofi tags confirmation.
+  rofi_name_ask_result=$(_rofi -p "What is the name?")
+  rofi_name_ask_result_exit_code=$?
+
+  # Process name request.
+  name=""
+  if [[ "$rofi_name_ask_result_exit_code" == "1" ]]; then
+      exit
+  elif [[ "$rofi_name_ask_result_exit_code" -eq 0 ]]; then
+    name="$rofi_name_ask_result"
+  fi
+  echo $name
+}
+
+_get_tags() {
+  # Show rofi tags confirmation.
+  rofi_tags_ask_result=$(bookit --tags | awk '{$NF=""; print $0}' | cut -d ' ' -f2- | _rofi -p "Add tags separated by ','")
+  rofi_tags_ask_result_exit_code=$?
+
+  # Process tags request.
+  tags=""
+  if [[ "$rofi_tags_ask_result_exit_code" == "1" ]]; then
+    exit
+  elif [[ "$rofi_tags_ask_result_exit_code" -eq 0 ]]; then
+    # Construct space delimited list for bookit.
+    # TODO@nw: Bug with spaces in tags, when transforming to space delimited list
+    #          should put quotes around values.
+    IFS=',' read -ra tags <<< "$rofi_tags_ask_result"
+    echo $(_join " "  "${tags[@]}")
+  fi
+}
+
+_add_bookmark() {
+  rofi_invalid_uri="$1"
+
+  # Create suggestions.
+  clipboard_uri="$(xclip -o | grep -E $URI_REGEX)"
+
+  # Show rofi add confirmation.
+  rofi_add_ask_result="$(echo "$clipboard_uri" | _rofi -p "Add bookmark")"
+  rofi_add_ask_result_exit_code=$?
+
+  # Process add request.
+  if [[ "$rofi_add_ask_result_exit_code" == "0" ]]; then
+    if [[ "$rofi_add_ask_result" != "" ]]; then
+      name="$(_get_name)"
+      tags="$(_get_tags)"
+
+      trap "_download_icon \"$rofi_add_ask_result\"" EXIT
+
+      if [[ "$name" == "" ]]; then
+        bookit add --name "${rofi_add_ask_result}" --url "${rofi_add_ask_result}" --tags ${tags}
+      else
+        bookit add --name "$name" --url "${rofi_add_ask_result}" --tags ${tags}
+      fi
+    fi
+  fi
+}
+
+_edit_bookmark() {
+  rofi_result_name="$1"
+
+  # Edit bookmark with $EDITOR.
+  terminal -e bookit edit --name "$rofi_result_name"
+}
+
+_delete_bookmark() {
+  rofi_result_name="$1"
+
+  # Show rofi delete confirmation.
+  rofi_delete_ask_result=$(echo -e "1. Yes\n2. No" | _rofi -p "Delete '$rofi_result_name'")
+  rofi_delete_ask_result_exit_code=$?
+
+  # Process delete confirmation.
+  if [[ "$rofi_delete_ask_result_exit_code" == "0" ]]; then
+    if [[ "$rofi_delete_ask_result" == "1. Yes" ]]; then
+      bookit delete --name "$rofi_result_name"
+    fi
+  fi
+}
+
+_get_hostname() {
+  echo "$1" | rg $URI_BASEURL_REGEX -r '$2'
+}
+
+_download_icon() {
+  # TODO@nw: Support for custom favicons.
+  #    console.google.cloud.com :: https://ssl.gstatic.com/pantheon/images/favicon/default.png
+  url=$1
+
+  # Validate valid urls - "https" only.
+  baseurl=$(echo "$url" | rg $URI_BASEURL_REGEX -r '$1$2')
+  scheme=$(echo "$baseurl" | rg $URI_BASEURL_REGEX -r '$1' | sed 's/https/http/')
+  hostname=$(_get_hostname "$baseurl")
+  if [[ "$scheme" != "http://" ]]; then
+    return
+  fi
+
+  # Extract Favicon from baseurl.
+  # TODO@nw: Support for other favicon files other than ico
+  favicon_url=$(http "$baseurl" --follow | pup '[href]' | grep favicon | sed 's/.*href="\([^"]*\).*/\1/' | head -1)
+  if [[ "$favicon_url" == "" ]]; then
+    favicon_url="$baseurl/favicon.ico"
+  fi
+
+  # Check icon cache - When older than a week invalidate cache.
+  cache_icon_path="$HOME/.icons/bookit/48x48/apps/$hostname.ico"
+  if [[ -f "$cache_icon_path" ]]; then
+    # Stat gives us "last modified" back in seconds                - (s/1m  * m/1hr * hr/day * day/week)
+    invalidate_cache=$(( (`date +%s` - `stat -L --format %Y $cache_icon_path`) > (60    * 60    * 24     * 7) ))
+    if [[ "$invalidate_cache" == "0" ]]; then
+      return
+    fi
+  fi
+
+  # Download Favicon.
+  # TODO@nw: Support for invalid ico header file - might be related to .ico not being  an ico...
+  http GET "$favicon_url" "User-Agent":"$USER_AGENT" --follow > "$HOME/.icons/bookit/48x48/apps/$hostname.ico"
+  magick convert "$HOME/.icons/bookit/48x48/apps/$hostname.ico" -thumbnail 48x48 -alpha on -background none -flatten "$HOME/.icons/bookit/48x48/apps/$hostname.png"
+}
+
+_download_icons() {
+  while read -u 3 -r line; do
+    _download_icon "$line"
+  done 3<<< $(</dev/stdin)
+}
+
+_parse_bookit_entry_name() {
+  _name=$(echo -e "$1" | cut -d$'\t' -f 1)
+  echo $_name
+}
+
+_parse_bookit_entry_tags() {
+  _tags=$(echo -e "$1" | cut -d$'\t' -f 2)
+  echo $_tags
+}
+
+_parse_bookit_entry_uri() {
+  _uri=$(echo -e "$1" | cut -d$'\t' -f 3)
+  echo $_uri
+}
+
+_main() {
+  # Main entry point.
+  # TODO@nw: Getting bookit content is relatively fast and efficient. The main problem seems to stem from bash.
+  #          - Parsing result of selected bookit entry.
+  #          - Possible usage of `stdbuf` to provide performance benefits.
+
+  # TODO@nw:
+  # Generate ALL icons job.
+  #   After a month of using bookit we'll have added/deleted a lot of icons. This job clears out the icons and downloads
+  #   only the ones left in bookit.
+  #   Need to add the delete.
+  # bookit view | _map_bookit_entries_to_bookit_uri | _download_icons
+  # exit
+
+  # TODO@nw:
+  # Speed/performance improvements.
+  # https://github.com/DaveDavenport/rofi/wiki/Debugging-Rofi#timing-traces
+
+  # Show rofi menu.
+  #   sed 's/:/\n/g' <<< "$PATH"
+  rofi_result=$(bookit view | _rofi -format 's' -i -p 'bookit' -kb-custom-1 "${BOOKMARK_ACTION_NEW}" -kb-custom-2 "${BOOKMARK_ACTION_EDIT}" -kb-custom-3 "${BOOKMARK_ACTION_DELETE}")
+  rofi_result_exit_code="$?"
+
+  # Parse results.
+  bookit_name=$(_parse_bookit_entry_name "$rofi_result")
+  bookit_tags=$(_parse_bookit_entry_tags "$rofi_result")
+  bookit_uri=$(_parse_bookit_entry_uri "$rofi_result")
+
+  # Process keybinding pressed.
+  if [[ "$rofi_result_exit_code" == "10" ]]; then
+    _add_bookmark
+  elif [[ "$rofi_result_exit_code" == "11" ]]; then
+    _edit_bookmark "$bookit_name"
+  elif [[ "$rofi_result_exit_code" == "12" ]]; then
+    _delete_bookmark "$bookit_name"
+  elif [[ "$rofi_result_exit_code" == "0" ]]; then
+    # Process user input accepted.
+    if [[ "$bookit_name" == "$bookit_uri" ]]; then
+      # User defined input - launch google.
+      xdg-open "https://www.google.com/search?q=$rofi_result"
+    else
+      # Selected bookmark - launch bookmark.
+      xdg-open "$bookit_uri"
+    fi
+  fi
+}
+
+_main
