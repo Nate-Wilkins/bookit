@@ -1,10 +1,18 @@
 extern crate anyhow;
 extern crate fsutils;
+extern crate log;
 extern crate regex;
 
 use anyhow::{bail, Context, Result};
+use log::{LevelFilter, Record};
 use regex::Regex;
-use std::{fs::File, io::Write, path::PathBuf};
+use std::io::Write;
+use std::str::FromStr;
+use std::{fs::File, path::PathBuf};
+
+type LogFormatter = Box<
+    dyn Fn(&mut env_logger::fmt::Formatter, &Record) -> Result<(), std::io::Error> + Send + Sync,
+>;
 
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 struct Config {
@@ -23,7 +31,7 @@ fn main() {
     let args = create_application().get_matches();
 
     // Initialize logger.
-    initialize_logger();
+    initialize_logger(&args);
 
     // Run the application.
     if let Err(e) = run(args) {
@@ -35,12 +43,31 @@ fn main() {
 
 /// Create the application command line interface.
 fn create_application() -> clap::App<'static, 'static> {
-    return clap::App::new(clap::crate_name!())
+    clap::App::new(clap::crate_name!())
         .bin_name(clap::crate_name!())
         .version(clap::crate_version!())
         .author(clap::crate_authors!())
         .about(clap::crate_description!())
         .setting(clap::AppSettings::ArgRequiredElseHelp)
+        .arg(
+            clap::Arg::with_name("verbosity")
+                .long("verbosity")
+                .help("Logging verbosity level")
+                .takes_value(true)
+                .possible_values(&["error", "warn", "info", "debug", "trace"])
+                .required(false)
+                .env("BOOKIT_LOG_LEVEL")
+                .default_value("info"),
+        )
+        .arg(
+            clap::Arg::with_name("log_format")
+                .long("log-format")
+                .help("Logging format")
+                .takes_value(true)
+                .possible_values(&["simple", "context"])
+                .required(false)
+                .default_value("simple"),
+        )
         .subcommand(
             clap::SubCommand::with_name("config")
                 .about("configuration")
@@ -149,15 +176,41 @@ fn create_application() -> clap::App<'static, 'static> {
                         .takes_value(true)
                         .help("name of the bookmark"),
                 ),
-        );
+        )
 }
 
 /// Initializes the application logger.
-fn initialize_logger() {
-    // TODO: Support `--verbosity`.
-    let env = env_logger::Env::default().filter("BOOKIT_LOG_LEVEL");
+fn initialize_logger(args: &clap::ArgMatches) {
+    let args_log_level = args.value_of("verbosity").unwrap_or("error");
+    let args_log_format = args.value_of("log_format").unwrap_or("simple");
 
-    return env_logger::Builder::from_env(env)
+    let log_level = LevelFilter::from_str(args_log_level).unwrap();
+    let log_format: LogFormatter = match args_log_format {
+        "context" => Box::new(|buf: &mut env_logger::fmt::Formatter, record: &Record| {
+            writeln!(
+                buf,
+                "[{} {}] {}: {}",
+                chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S"),
+                record.level(),
+                record.target(),
+                record.args()
+            )
+            .expect("Failed to write log message to buffer.");
+
+            Ok(())
+        }),
+        _ => Box::new(|buffer: &mut env_logger::fmt::Formatter, record: &Record| {
+            writeln!(buffer, "{}", record.args()).expect("Failed to write log message to buffer.");
+
+            Ok(())
+        }),
+    };
+
+    let env = env_logger::Env::default();
+
+    env_logger::Builder::from_env(env)
+        .filter_level(log_level)
+        .format(log_format)
         .target(env_logger::Target::Stdout)
         .init();
 }
