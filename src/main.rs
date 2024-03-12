@@ -6,6 +6,7 @@ extern crate regex;
 use anyhow::{bail, Context, Result};
 use log::{LevelFilter, Record};
 use regex::Regex;
+use std::env;
 use std::io::Write;
 use std::str::FromStr;
 use std::{fs::File, path::PathBuf};
@@ -25,20 +26,32 @@ struct ConfigBookmark {
     tags: Vec<String>,
 }
 
+type ExitCode = i32;
+
 /// Bookmarks manager.
 fn main() {
     // Command line interface.
-    let args = create_application().get_matches();
+    let mut application = create_application();
+    let mut exit_code: ExitCode = 0;
+    if env::args().count() <= 1 {
+        application.print_long_help().unwrap();
+        println!();
+    } else {
+        let args = application.get_matches();
 
-    // Initialize logger.
-    initialize_logger(&args);
+        // Initialize logger.
+        initialize_logger(&args);
 
-    // Run the application.
-    if let Err(e) = run(args) {
-        eprintln!("{}", e);
-        std::process::exit(2);
+        // Run the application.
+        exit_code = match run(&args) {
+            Ok(exit_code) => exit_code,
+            Err(e) => {
+                eprintln!("{}", e);
+                2
+            }
+        };
     }
-    std::process::exit(0);
+    std::process::exit(exit_code);
 }
 
 /// Create the application command line interface.
@@ -216,7 +229,7 @@ fn initialize_logger(args: &clap::ArgMatches) {
 }
 
 /// Run application according to command line interface arguments.
-fn run(args: clap::ArgMatches) -> Result<()> {
+fn run(args: &clap::ArgMatches) -> Result<ExitCode> {
     if args.subcommand_matches("completions").is_some() {
         command_completions(args)?;
     } else if args.subcommand_matches("config").is_some() {
@@ -233,13 +246,13 @@ fn run(args: clap::ArgMatches) -> Result<()> {
         command_delete(args)?;
     }
 
-    Ok(())
+    Ok(0)
 }
 
 const REGEX_HOSTNAME: &str = r"^([^:]*://)([^/]*)/?.*?$";
 
 /// Command to output completions of a specific type to STDOUT.
-fn command_completions(args: clap::ArgMatches) -> Result<()> {
+fn command_completions(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_completions = args.subcommand_matches("completions").unwrap();
     let completion_type = args_completions.value_of("type").unwrap();
@@ -283,7 +296,7 @@ fn command_completions(args: clap::ArgMatches) -> Result<()> {
 }
 
 // Command to create a configuration file.
-fn command_config_create(args: clap::ArgMatches) -> Result<()> {
+fn command_config_create(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_config = args.subcommand_matches("config").unwrap();
     let args_config_create = args_config.subcommand_matches("create").unwrap();
@@ -329,7 +342,7 @@ bookmarks: {}"#,
 }
 
 /// Command to view bookmarks.
-fn command_view(args: clap::ArgMatches) -> Result<()> {
+fn command_view(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_config = args.value_of("config").unwrap();
     let args_view = args.subcommand_matches("view").unwrap();
@@ -374,7 +387,7 @@ fn command_list_tags() -> Result<()> {
 }
 
 /// Command to add a bookmark.
-fn command_add(args: clap::ArgMatches) -> Result<()> {
+fn command_add(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_add = args.subcommand_matches("add").unwrap();
 
@@ -422,7 +435,7 @@ fn command_add(args: clap::ArgMatches) -> Result<()> {
 }
 
 /// Command to edit a bookmark.
-fn command_edit(args: clap::ArgMatches) -> Result<()> {
+fn command_edit(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_edit = args.subcommand_matches("edit").unwrap();
     let args_edit_name = args_edit.value_of("name").unwrap();
@@ -492,7 +505,7 @@ fn command_edit(args: clap::ArgMatches) -> Result<()> {
 }
 
 /// Command to delete a bookmark.
-fn command_delete(args: clap::ArgMatches) -> Result<()> {
+fn command_delete(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_delete = args.subcommand_matches("delete").unwrap();
     let args_delete_name = args_delete.value_of("name").unwrap();
