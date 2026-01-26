@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# TODO: Delete.
+
 # Program config.
 _rofi () {
   # \x00image\x1f/absolute/path/img.png\n
