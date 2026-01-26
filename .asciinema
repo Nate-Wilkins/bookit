@@ -1,0 +1,5 @@
+#$ delay 80
+#$ wait 200
+
+nix run github:nate-wilkins/bookit -- --help
+#$ expect \$

@@ -1,0 +1,87 @@
+# <%{ name }%>
+
+[![Version](https://img.shields.io/crates/v/bookit?style=flat-square)](https://crates.io/crates/bookit)
+[![Build](https://img.shields.io/travis/Nate-Wilkins/bookit/main?style=flat-square)](https://app.travis-ci.com/github/Nate-Wilkins/bookit)
+[![Downloads](https://img.shields.io/crates/d/bookit?color=%230E0&style=flat-square)](https://crates.io/crates/bookit)
+[![Open Issues](https://img.shields.io/github/issues-raw/Nate-Wilkins/bookit?style=flat-square)](https://github.com/Nate-Wilkins/bookit/issues)
+[![License](https://img.shields.io/github/license/Nate-Wilkins/bookit?color=%2308F&style=flat-square)](https://github.com/Nate-Wilkins/bookit/blob/main/LICENSE)
+
+> <%{ description }%>
+
+## Install
+
+```
+cargo install bookit
+```
+
+## Configuration
+
+### Bookmarks
+
+To setup `bookit` you need to run:
+
+```
+bookit config create
+```
+
+This will create a configuration file for where your bookmarks will be stored.
+
+### Usage
+
+```bash
+<%{ asciinema }%>
+```
+
+<p align="center">
+  <img src="./examples/demo.gif" />
+</p>
+
+### Shell Completions
+
+You can put this in your `.zshrc` file (just make sure `$HOME/.zsh_functions/` is in your
+`fpath`):
+
+```
+if [[ ! -f "$HOME/.zsh_functions/_bookit" ]]; then
+  bookit completions --type zsh > "$HOME/.zsh_functions/_bookit"
+fi
+```
+
+Or you can generate yours with:
+
+```
+bookit completions --type $SHELL               # Where $SHELL is zsh,bash,fish,elvish,powershell
+```
+
+### Environment Variables
+
+To configure bookit you can update the following variables.
+
+- `$BOOKIT_LOG_LEVEL` (unset): Sets the log level for the program.
+
+- `$BOOKIT_CONFIG_PATH` (`~/.bookit`):
+  Configuration file path where bookit stores bookmarks.
+
+- `$BOOKIT_EDIT_COMMAND` (`$EDITOR "$BOOKIT_CONFIG_PATH" "+/$VIM_BOOKIT_BOOKMARK_NAME"`):
+  Process command to run to edit a bookmark. Available variables are:
+  - `$BOOKIT_CONFIG_PATH`: Path to the configuration.
+  - `$BOOKIT_BOOKMARK_NAME`: Name of the bookmark to edit.
+  - `$VIM_BOOKIT_BOOKMARK_NAME`: `$BOOKIT_BOOKMARK_NAME` with proper escaping for searching in vim.
+
+## Development
+
+Written in rust. Workflows are defined in `.envrc.sh`.
+
+## Roadmap
+
+- Support `bookit view | grep` piping?
+- Create `rofi-bookit`.
+- Support windows?
+- Create Windows like spotlight.
+
+## Contributions
+
+| Author  | Estimated Hours |
+| ------------- | ------------- |
+<%#authors%>| [![<%name%>](https://github.com/<%name%>.png?size=64)](https://github.com/<%name%>) | <p align="right"><%hours%> Hours</p> |
+<%/authors%>

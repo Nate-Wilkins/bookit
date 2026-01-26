@@ -1,3 +1,4 @@
+extern crate anyhow;
 extern crate assert_cmd;
 extern crate predicates;
 extern crate pretty_assertions;
@@ -34,10 +35,16 @@ fn test_command_config_create() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("bookit")?;
 
     // And the user has a place to put the config.
-    let config_path = tempdir().unwrap().path().join(".bookit");
+    let tmp_path = tempdir().unwrap().into_path();
+    let config_path = tmp_path.join(".bookit");
 
     // When the user runs the command config create.
-    let result = cmd.arg("config").arg("create").arg(&config_path).assert();
+    let result = cmd
+        .arg("config")
+        .arg("create")
+        .arg("--config-to-make")
+        .arg(&config_path)
+        .assert();
 
     result
         // Then no errors occurred.
@@ -46,9 +53,14 @@ fn test_command_config_create() -> Result<(), Box<dyn std::error::Error>> {
         // Then configuration file was created.
         .stdout(predicate::str::contains(format!(
             "Creating configuration at '{}'.
+{} exists
 Created configuration.",
-            &config_path.into_os_string().to_str().unwrap()
+            &config_path.into_os_string().to_str().unwrap(),
+            &tmp_path.clone().into_os_string().to_str().unwrap(),
         )));
+
+    // Cleanup.
+    std::fs::remove_dir_all(&tmp_path)?;
 
     Ok(())
 }
@@ -68,6 +80,7 @@ fn test_command_config_create_config_file_exists() -> Result<(), Box<dyn std::er
     let result = cmd
         .arg("config")
         .arg("create")
+        .arg("--config-to-make")
         .arg(config_path.path().as_os_str().to_str().unwrap())
         .assert();
 

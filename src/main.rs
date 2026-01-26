@@ -86,7 +86,8 @@ fn create_application() -> clap::App<'static, 'static> {
                 .about("configuration")
                 .subcommand(
                     clap::SubCommand::with_name("create").arg(
-                        clap::Arg::with_name("create_config")
+                        clap::Arg::with_name("config-to-make")
+                            .long("config-to-make")
                             .takes_value(true)
                             .required(true)
                             .env("BOOKIT_CONFIG_PATH")
@@ -300,7 +301,7 @@ fn command_config_create(args: &clap::ArgMatches) -> Result<()> {
     // Parse arguments.
     let args_config = args.subcommand_matches("config").unwrap();
     let args_config_create = args_config.subcommand_matches("create").unwrap();
-    let args_config_create_config = args_config_create.value_of("create_config").unwrap();
+    let args_config_create_config = args_config_create.value_of("config-to-make").unwrap();
 
     // Get config path.
     let config_path =
@@ -542,3 +543,4 @@ fn load_config(config_path: &std::path::PathBuf) -> Result<Config> {
 
     Ok(config)
 }
+
