@@ -103,7 +103,7 @@
     task_docs                                                = taskRunner.mkTask {
       name                                                   = "docs";
       dependencies                                           = with pkgs; [
-        coreutils           # /bin/echo  # /bin/cp
+        coreutils           # /bin/echo  # /bin/mv
         task_examples       # /bin/examples
         task-documentation  # /bin/alex
       ];
@@ -112,7 +112,7 @@
         ${task_examples}/bin/examples
 
         ${task-documentation}/bin/alex generate
-        ${coreutils}/bin/cp ./docs/README.md ./README.md
+        ${coreutils}/bin/mv ./docs/README.md ./README.md
       '';
     };
 
@@ -251,4 +251,3 @@
     }
   )
 )
-

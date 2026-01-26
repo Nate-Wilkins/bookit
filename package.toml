@@ -1,0 +1,4 @@
+name               = "bookit"
+description        = "Fast and simple bookmark manager for your operating system."
+version            = "2.0.1"
+author             = "Nate-Wilkins <nate-wilkins@code-null.com>"
